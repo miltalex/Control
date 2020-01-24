@@ -50,7 +50,7 @@ func NewEnvManager(tm *task.Manager) *Manager {
 	}
 }
 
-func (envs *Manager) CreateEnvironment(workflowPath string) (uuid.UUID, error) {
+func (envs *Manager) CreateEnvironment(workflowPath string, properties map[string]string) (uuid.UUID, error) {
 	envs.mu.Lock()
 	defer envs.mu.Unlock()
 
@@ -58,7 +58,7 @@ func (envs *Manager) CreateEnvironment(workflowPath string) (uuid.UUID, error) {
 	if err != nil {
 		return uuid.NIL, err
 	}
-	env.workflow, err = envs.loadWorkflow(workflowPath, env.wfAdapter)
+	env.workflow, err = envs.loadWorkflow(workflowPath, env.wfAdapter, properties)
 	if err != nil {
 		err = fmt.Errorf("cannot load workflow template: %s", err.Error())
 		return env.id, err
@@ -159,9 +159,9 @@ func (envs *Manager) environment(environmentId uuid.UUID) (env *Environment, err
 	return
 }
 
-func (envs *Manager) loadWorkflow(workflowPath string, parent workflow.Updatable) (root workflow.Role, err error) {
+func (envs *Manager) loadWorkflow(workflowPath string, parent workflow.Updatable, userProperties map[string]string) (root workflow.Role, err error) {
 	if strings.Contains(workflowPath, "://") {
 		return nil, errors.New("workflow loading from file not implemented yet")
 	}
-	return workflow.Load(the.ConfSvc().GetROSource(), workflowPath, parent, envs.taskman)
+	return workflow.Load(the.ConfSvc().GetROSource(), workflowPath, parent, envs.taskman, userProperties)
 }

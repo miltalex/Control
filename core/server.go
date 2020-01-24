@@ -222,7 +222,7 @@ func (m *RpcServer) NewEnvironment(cxt context.Context, request *pb.NewEnvironme
 	}
 
 	// Create new Environment instance with some roles, we get back a UUID
-	id, err := m.state.environments.CreateEnvironment(request.GetWorkflowTemplate())
+	id, err := m.state.environments.CreateEnvironment(request.GetWorkflowTemplate(), request.GetProperties())
 	if err != nil {
 		return nil, status.Newf(codes.Internal, "cannot create new environment: %s", err.Error()).Err()
 	}

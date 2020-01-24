@@ -31,6 +31,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/AliceO2Group/Control/common/gera"
 	"github.com/AliceO2Group/Control/common/logger"
 	"github.com/AliceO2Group/Control/core/workflow"
 	"github.com/gobwas/glob"
@@ -51,6 +52,9 @@ type Environment struct {
 	workflow         workflow.Role
 	wfAdapter        *workflow.ParentAdapter
 	currentRunNumber uint32
+
+	defaults         gera.Map
+	vars             gera.Map
 }
 
 func newEnvironment() (env *Environment, err error) {

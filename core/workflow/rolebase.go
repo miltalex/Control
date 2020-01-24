@@ -30,6 +30,7 @@ import (
 	"fmt"
 	"text/template"
 
+	"github.com/AliceO2Group/Control/common/gera"
 	"github.com/AliceO2Group/Control/common/logger"
 	"github.com/AliceO2Group/Control/core/task/channel"
 	"github.com/jinzhu/copier"
@@ -51,11 +52,14 @@ const(
 type roleBase struct {
 	Name        string                  `yaml:"name"`
 	parent      Updatable
-	Vars        task.VarMap             `yaml:"vars,omitempty"`
+	Vars        gera.Map                `yaml:"vars,omitempty"`
+	UserVars    gera.Map
 	Connect     []channel.Outbound      `yaml:"connect,omitempty"`
 	Constraints constraint.Constraints  `yaml:"constraints,omitempty"`
 	status      SafeStatus
 	state       SafeState
+
+
 }
 
 func (r *roleBase) CollectOutboundChannels() (channels []channel.Outbound) {
@@ -78,6 +82,8 @@ func (r *roleBase) UnmarshalYAML(unmarshal func(interface{}) error) (err error) 
 	//       recurse back to this function forever
 	type _roleBase roleBase
 	role := _roleBase{
+		Vars: gera.MakeMap(),
+		UserVars: gera.MakeMap(),
 		status: SafeStatus{status:task.INACTIVE},
 		state:  SafeState{state:task.STANDBY},
 	}
@@ -146,7 +152,8 @@ func (r *roleBase) copy() copyable {
 	rCopy := roleBase{
 		Name: r.Name,
 		parent: r.parent,
-		Vars: make(task.VarMap),
+		Vars: gera.MakeMap(),
+		UserVars: gera.MakeMap(),
 		Connect: make([]channel.Outbound, len(r.Connect)),
 		Constraints: make(constraint.Constraints, len(r.Constraints)),
 		status: r.status,
@@ -154,6 +161,10 @@ func (r *roleBase) copy() copyable {
 	}
 
 	err := copier.Copy(&rCopy.Vars, &r.Vars)
+	if err != nil {
+		log.WithField("role", r.GetPath()).WithError(err).Error("role copy error")
+	}
+	err = copier.Copy(&rCopy.UserVars, &r.UserVars)
 	if err != nil {
 		log.WithField("role", r.GetPath()).WithError(err).Error("role copy error")
 	}
